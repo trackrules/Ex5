@@ -1,8 +1,8 @@
 all:
-	wcc -S switches.c
-	wasm switches.s
-	wlink -o switches.srec switches.o
+	wcc -S cswitches.c
+	wasm cswitches.s
+	wlink -o cswitches.srec cswitches.o
 	
 clean:
-	rm switches.s switches.o switches.srec
+	rm cswitches.s cswitches.o cswitches.srec
 	
