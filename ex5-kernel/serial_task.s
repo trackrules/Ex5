@@ -1,6 +1,3 @@
-.global	counter
-counter:
-	.word	0x2f4b7
 .global	pressed
 pressed:
 	.word	0x31
@@ -27,8 +24,8 @@ L.5:
 	lw	$13, 1($sp)
 	addui	$sp, $sp, 2
 	jr	$ra
-.global	main
-main:
+.global	serial_main
+serial_main:
 	subui	$sp, $sp, 6
 	sw	$6, 1($sp)
 	sw	$7, 2($sp)
@@ -41,14 +38,6 @@ L.13:
 	snei	$13, $13, 49
 	bnez	$13, L.16
 	addui	$13, $0, 13
-	sw	$13, 0($sp)
-	jal	putc
-	lw	$13, counter($0)
-	lhi	$12, 0xf
-	ori	$12, $12, 0x4240
-	div	$13, $13, $12
-	remi	$13, $13, 10
-	addi	$13, $13, 48
 	sw	$13, 0($sp)
 	jal	putc
 	lw	$13, counter($0)
@@ -71,19 +60,24 @@ L.13:
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
 	jal	putc
-	addui	$13, $0, 46
-	sw	$13, 0($sp)
-	jal	putc
 	lw	$13, counter($0)
 	divi	$13, $13, 100
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
 	jal	putc
+	addui	$13, $0, 46
+	sw	$13, 0($sp)
+	jal	putc
 	addui	$13, $0, 10
 	lw	$12, counter($0)
 	div	$12, $12, $13
 	rem	$13, $12, $13
+	addi	$13, $13, 48
+	sw	$13, 0($sp)
+	jal	putc
+	lw	$13, counter($0)
+	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
 	jal	putc
@@ -205,3 +199,7 @@ L.9:
 	lw	$ra, 5($sp)
 	addui	$sp, $sp, 6
 	jr	$ra
+.bss
+.global	counter
+counter:
+	.space	1

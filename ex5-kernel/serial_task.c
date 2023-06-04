@@ -17,13 +17,13 @@ void main(){
             if (pressed == '1')
             {
                 putc('\r');
-                putc(((counter/1000000)%10)+0x30);
                 putc(((counter/100000)%10)+0x30);
                 putc(((counter/10000)%10)+0x30);
                 putc(((counter/1000)%10)+0x30);
-                putc('.');
                 putc(((counter/100)%10)+0x30);
+                putc('.');
                 putc(((counter/10)%10)+0x30);
+                putc(((counter/1)%10)+0x30);
             }
             else if (pressed == '2')
             {
