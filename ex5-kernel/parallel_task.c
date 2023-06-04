@@ -1,16 +1,16 @@
 #include "wramp.h"
 
-void base10(int value, int base)
+void base10(int value)
 {   
-    WrampParallel-> UpperLeftSSD    = (value/base^3)%base;
-	WrampParallel-> UpperRightSSD   = (value/base^2)%base;
-	WrampParallel-> LowerLeftSSD    = (value/base^1)%base;
-	WrampParallel-> LowerRightSSD   = (value/base^0)%base;
+    WrampParallel-> UpperLeftSSD    = (value/1000)%10;
+	WrampParallel-> UpperRightSSD   = (value/100)%10;
+	WrampParallel-> LowerLeftSSD    = (value/10)%10;
+	WrampParallel-> LowerRightSSD   = (value)%10;
 }
 
 void base16(int value)
 {
-     WrampParallel-> UpperLeftSSD    = (value/0x1000)%0x10;
+    WrampParallel-> UpperLeftSSD    = (value/0x1000)%0x10;
 	WrampParallel-> UpperRightSSD   = (value/0x100)%0x10;
 	WrampParallel-> LowerLeftSSD    = (value/0x10)%0x10;
 	WrampParallel-> LowerRightSSD   = value%0x10;
@@ -20,7 +20,6 @@ void main()
 {
     int switches = 0;
     int buttons = 0;
-    int base = 0;
 
     while (1)
     {
@@ -31,13 +30,11 @@ void main()
         // WrampParallel->LowerRightSSD = buttons;
         if (buttons == 1)
         {
-            base = 10;
-            base10(switches,base);
+            base10(switches);
         }
         if (buttons == 2)
         {
-            base = 0x10;
-            base10(switches,base);
+            base16(switches);
         }
         if (buttons == 4)
         {
