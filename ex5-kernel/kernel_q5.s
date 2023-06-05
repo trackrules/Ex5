@@ -26,6 +26,8 @@
 
 .global main
 main:      
+    sw $0, counter($0)
+
     movsg $2, $cctrl            #Get val of cctrl
     andi $2, $2, 0x000f         #Disable interrupts
     ori $2, $2, 0x4d            #Enable irq2
@@ -44,17 +46,15 @@ main:
    
     addi $5, $0, 0x4d           #Unmask IRQ2, KU=1, OKU=1, IE=0,OIE=1 
 
-    la $1, serial_pcb           #Setup the pcb for task 1 
-    la $2, serial_pcb 
+    la $1, parallel_pcb           #Setup the pcb for task 1 
+    la $2, task2_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
-    la $2, serial_stack         #Setup the stack pointer
+    la $2, parallel_stack         #Setup the stack pointer
     sw $2, pcb_sp($1)
-    la $2, serial_main          #Setup the Sear field
+    la $2, parallel_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field 
 
-    la $1, serial_pcb
-    sw $1, current_task($0)
 handler:
     movsg $13, $estat       #Get the value of the exception status register
     andi $13, $13, 0xffb0   #Check if interrupt we don’t handle ourselves
@@ -67,8 +67,9 @@ handle_irq2:
     lw $13, counter($0)
     addi $13, $13, 1          #Handle our interrupt/increment counter
     sw $13, counter($0)
+
     sw $0, timer_interrupt($0)      #Acknowledge the interrupt
-    
+
     lw $13, time_slice($0)
     subi $13, $13, 1
     beqz $13, dispatcher
@@ -76,6 +77,9 @@ handle_irq2:
     rfe 
 
 dispatcher:
+    addi $13, $0, 2
+    sw $13, time_slice($0)
+
 save_context: 
     # Get the base address of the current PCB 
     lw $13, current_task($0) 
@@ -92,8 +96,6 @@ save_context:
     sw $10, pcb_reg10($13)
     sw $11, pcb_reg11($13)
     sw $12, pcb_reg12($13)
-    sw $14, pcb_sp($13)
-    sw $15, pcb_ra($13)
     
     movsg   $1, $ers            #Save old $13
     sw      $1, pcb_reg13($13) 
@@ -108,10 +110,6 @@ schedule:
     sw $13, current_task($0)    #Set next task as current task  
 
 load_context:
-    addi $13, $0, 2
-    sw $13, time_slice($0)
-
-
     lw $13, current_task($0)     #Get PCB of current task 
 
     lw      $1, pcb_reg13($13)   #Get the PCB value for $13 back into $ers 
@@ -134,8 +132,6 @@ load_context:
     lw $10, pcb_reg10($13)
     lw $11, pcb_reg11($13)
     lw $12, pcb_reg12($13)
-    lw $14, pcb_sp($13)
-    lw $15, pcb_ra($13)
 
     #Return to the new task 
     rfe
@@ -149,18 +145,21 @@ old_handler:    .word
 
 current_task:   .word
 
-serial_pcb:     .space 18
+parallel_pcb:     .space 18
 
 task2_pcb:      .space 18 
 
 task3_pcb:      .space 18
 
     .space 100
-serial_stack:
+parallel_stack:
 
     .space 100
 task2_stack:
 
     .space 100
 task3_stack:
+
+counter:
+	.space 1
 
