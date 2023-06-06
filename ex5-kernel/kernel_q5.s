@@ -30,7 +30,7 @@ main:
 
     movsg $2, $cctrl            #Get val of cctrl
     andi $2, $2, 0x000f         #Disable interrupts
-    ori $2, $2, 0x4d            #Enable irq2
+    ori $2, $2, 0x42            #Enable irq2
     movgs $cctrl, $2            #store back in cctrl
 
     sw $0, timer_interrupt($0)  # Make sure there are no old interrupts still hanging around
@@ -54,6 +54,8 @@ main:
     la $2, parallel_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field 
+
+    jal load_context 
 
 handler:
     movsg $13, $estat       #Get the value of the exception status register
