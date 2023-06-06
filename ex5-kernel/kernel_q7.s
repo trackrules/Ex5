@@ -4,8 +4,6 @@
 
 .global main
 main:   
-
-
     .equ timer_control,     0x72000
     .equ timer_load,        0x72001
     .equ timer_interrupt,   0x72003 
@@ -28,6 +26,7 @@ main:
     .equ pcb_ra,    15
     .equ pcb_ear,   16
     .equ pcb_cctrl, 17
+    .equ pcb_timeslice, 18
 
     movsg $2, $evec             #Copy the old handler’s address to $2
     sw $2, old_handler($0)      #Save it to memory
@@ -54,7 +53,7 @@ main:
     #===========================
     la $1, parallel_pcb           #Setup the pcb for task 1 
 
-    la $2, serial_pcb 
+    la $2, games_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
 
     la $2, parallel_stack         #Setup the stack pointer
@@ -66,6 +65,23 @@ main:
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, parallel_pcb
+    sw $1, current_task($0)  
+
+    #===========================
+    la $1, games_pcb           #Setup the pcb for task 1 
+
+    la $2, serial_pcb 
+    sw $2, pcb_link($1)         #Setup the link field 
+
+    la $2, games_stack         #Setup the stack pointer
+    sw $2, pcb_sp($1)
+
+    la $2, gameSelect_main          #Setup the Sear field
+    sw $2, pcb_ear ($1)
+
+    sw $5, pcb_cctrl($1)        #Setup the $cctrl field
+
+    la $1, games_pcb
     sw $1, current_task($0)  
 
     movsg $2, $cctrl            #Get val of cctrl
@@ -92,15 +108,22 @@ handler:
 handle_irq2:
     sw $0, timer_interrupt($0)      #Acknowledge the interrupt
 
-    lw $13, counter($0)
-    addi $13, $13, 1          #Handle our interrupt/increment counter
-    sw $13, counter($0)
-    
-    lw $13, time_slice($0)
-    subi $13, $13, 1
-    sw $13, time_slice($0)
-    beqz $13, dispatcher
+    subui $sp, $sp, 1
+    sw $1, 0($sp)
 
+    lw $1, counter($0)
+    addi $1, $1, 1          #Handle our interrupt/increment counter
+    sw $1, counter($0)
+
+    lw $13, current_task($0) 
+
+    lw $1, pcb_timeslice($13)
+    subi $1, $1, 1
+    sw $1, pcb_timeslice($13)
+    beqz $1, dispatcher
+
+    lw $1, 0($sp)
+    addui $sp, $sp, 1
 
     rfe 
 
@@ -182,9 +205,9 @@ current_task:   .word
 
 serial_pcb:     .space 19
 
-parallel_pcb:      .space 19 
+parallel_pcb:   .space 19 
 
-# task3_pcb:      .space 18
+games_pcb:      .space 19
 
     .space 200
 serial_stack:
@@ -192,6 +215,6 @@ serial_stack:
     .space 200
 parallel_stack:
 
-#     .space 100
-# task3_stack:
+    .space 200
+games_stack:
 

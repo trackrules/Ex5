@@ -1,9 +1,9 @@
 .global	pressed
 pressed:
 	.word	0x31
-.global	putc
+.global	putch
 .text
-putc:
+putch:
 	subui	$sp, $sp, 2
 	sw	$12, 0($sp)
 	sw	$13, 1($sp)
@@ -39,7 +39,7 @@ L.13:
 	bnez	$13, L.16
 	addui	$13, $0, 13
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	lhi	$12, 0x1
 	ori	$12, $12, 0x86a0
@@ -47,40 +47,40 @@ L.13:
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	divi	$13, $13, 10000
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	divi	$13, $13, 1000
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	divi	$13, $13, 100
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	addui	$13, $0, 46
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	addui	$13, $0, 10
 	lw	$12, counter($0)
 	div	$12, $12, $13
 	rem	$13, $12, $13
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	j	L.17
 L.16:
 	lw	$13, pressed($0)
@@ -93,35 +93,35 @@ L.16:
 	divi	$6, $13, 100
 	addui	$13, $0, 13
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	addui	$13, $0, 10
 	div	$12, $7, $13
 	rem	$13, $12, $13
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	remi	$13, $7, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	addui	$13, $0, 58
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	divi	$13, $6, 10
 	remi	$13, $13, 6
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	remi	$13, $6, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	addui	$13, $0, 32
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	addui	$13, $0, 32
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	j	L.19
 L.18:
 	lw	$13, pressed($0)
@@ -129,7 +129,7 @@ L.18:
 	bnez	$13, L.20
 	addui	$13, $0, 13
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	lhi	$12, 0x1
 	ori	$12, $12, 0x86a0
@@ -137,37 +137,37 @@ L.18:
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	divi	$13, $13, 10000
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	divi	$13, $13, 1000
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	divi	$13, $13, 100
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	addui	$13, $0, 10
 	lw	$12, counter($0)
 	div	$12, $12, $13
 	rem	$13, $12, $13
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	lw	$13, counter($0)
 	remi	$13, $13, 10
 	addi	$13, $13, 48
 	sw	$13, 0($sp)
-	jal	putc
+	jal	putch
 	j	L.21
 L.20:
 	lw	$13, pressed($0)

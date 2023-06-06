@@ -4,8 +4,6 @@
 
 .global main
 main:   
-
-
     .equ timer_control,     0x72000
     .equ timer_load,        0x72001
     .equ timer_interrupt,   0x72003 
@@ -54,7 +52,7 @@ main:
     #===========================
     la $1, parallel_pcb           #Setup the pcb for task 1 
 
-    la $2, serial_pcb 
+    la $2, games_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
 
     la $2, parallel_stack         #Setup the stack pointer
@@ -66,6 +64,23 @@ main:
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, parallel_pcb
+    sw $1, current_task($0)  
+
+    #===========================
+    la $1, games_pcb           #Setup the pcb for task 1 
+
+    la $2, serial_pcb 
+    sw $2, pcb_link($1)         #Setup the link field 
+
+    la $2, games_stack         #Setup the stack pointer
+    sw $2, pcb_sp($1)
+
+    la $2, gameSelect_main          #Setup the Sear field
+    sw $2, pcb_ear ($1)
+
+    sw $5, pcb_cctrl($1)        #Setup the $cctrl field
+
+    la $1, games_pcb
     sw $1, current_task($0)  
 
     movsg $2, $cctrl            #Get val of cctrl
@@ -182,9 +197,9 @@ current_task:   .word
 
 serial_pcb:     .space 19
 
-parallel_pcb:      .space 19 
+parallel_pcb:   .space 19 
 
-# task3_pcb:      .space 18
+games_pcb:      .space 19
 
     .space 200
 serial_stack:
@@ -192,6 +207,6 @@ serial_stack:
     .space 200
 parallel_stack:
 
-#     .space 100
-# task3_stack:
+    .space 200
+games_stack:
 

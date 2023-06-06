@@ -79,10 +79,11 @@ handle_irq2:
     addi $13, $13, 1          #Handle our interrupt/increment counter
     sw $13, counter($0)
     
-    lw $13, time_slice($0)
+    lw $13, time_slice($0)      #decrement timeslice
     subi $13, $13, 1
     sw $13, time_slice($0)
-    beqz $13, dispatcher
+
+    beqz $13, dispatcher        #call disptacher if time slice is up
 
 
     rfe 
@@ -121,7 +122,7 @@ schedule:
     sw $13, current_task($0)    #Set next task as current task  
 
 load_context:
-    addi $13, $0, 2
+    addi $13, $0, 2             #Set timeslice
     sw $13, time_slice($0)
 
 
@@ -147,7 +148,7 @@ load_context:
     lw $10, pcb_reg10($13)
     lw $11, pcb_reg11($13)
     lw $12, pcb_reg12($13)
-    
+
     lw $14, pcb_sp($13)
     lw $15, pcb_ra($13)
 
