@@ -28,7 +28,7 @@
 main:      
     movsg $2, $cctrl            #Get val of cctrl
     andi $2, $2, 0x000f         #Disable interrupts
-    ori $2, $2, 0x4d            #Enable irq2
+    ori $2, $2, 0x42            #Enable irq2
     movgs $cctrl, $2            #store back in cctrl
 
     sw $0, timer_interrupt($0)  # Make sure there are no old interrupts still hanging around
