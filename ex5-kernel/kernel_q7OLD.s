@@ -4,7 +4,6 @@
 
 .global main
 main:   
-
     .equ timer_control,     0x72000
     .equ timer_load,        0x72001
     .equ timer_interrupt,   0x72003 
@@ -27,6 +26,7 @@ main:
     .equ pcb_ra,    15
     .equ pcb_ear,   16
     .equ pcb_cctrl, 17
+    .equ pcb_timeslice, 18
 
     movsg $2, $evec             #Copy the old handler’s address to $2
     sw $2, old_handler($0)      #Save it to memory
@@ -34,6 +34,8 @@ main:
     movgs $evec, $2             #And copy it into the $evec register
 
     addi $5, $0, 0x4d           #Unmask IRQ2, KU=1, OKU=1, IE=0,OIE=1 
+
+#===========Setup the pcb for Serial Task ================
     la $1, serial_pcb           #Setup the pcb for task 1 
 
     la $2, parallel_pcb 
@@ -43,15 +45,18 @@ main:
     sw $2, pcb_sp($1)
 
     la $2, serial_main          #Setup the Sear field
-    sw $2, pcb_ear ($1)
+    sw $2, pcb_ear ($1) 
+
+    addi $6, $0, 0x2
+    sw $6, pcb_timeslice($1)
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, serial_pcb
     sw $1, current_task($0)    
 
-    #===========================
-    la $1, parallel_pcb           #Setup the pcb for task 1 
+#===========Setup the pcb for Parallel Task ================
+    la $1, parallel_pcb         
 
     la $2, games_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
@@ -62,12 +67,15 @@ main:
     la $2, parallel_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
 
+    addi $6, $0, 0x2
+    sw $6, pcb_timeslice($1)
+
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, parallel_pcb
     sw $1, current_task($0)  
 
-    #===========================
+    #===========Setup the pcb for Games Task ================
     la $1, games_pcb           #Setup the pcb for task 1 
 
     la $2, serial_pcb 
@@ -77,12 +85,18 @@ main:
     sw $2, pcb_sp($1)
 
     la $2, gameSelect_main          #Setup the Sear field
-    sw $2, pcb_ear ($1)
+    sw $2, pcb_ear ($1)    
+    addi $6, $0, 0x2
+    sw $6, pcb_timeslice($1)
 
+    addi $6, $0, 0x4
+    sw $6, pcb_timeslice($1)
+    
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, games_pcb
     sw $1, current_task($0)  
+#===========END PCB setups=======================
 
     movsg $2, $cctrl            #Get val of cctrl
     andi $2, $2, 0x000f         #Disable interrupts
@@ -108,15 +122,22 @@ handler:
 handle_irq2:
     sw $0, timer_interrupt($0)      #Acknowledge the interrupt
 
-    lw $13, counter($0)
-    addi $13, $13, 1          #Handle our interrupt/increment counter
-    sw $13, counter($0)
-    
-    lw $13, time_slice($0)
-    subi $13, $13, 1
-    sw $13, time_slice($0)
-    beqz $13, dispatcher
+    subui $sp, $sp, 1
+    sw $1, 0($sp)
 
+    lw $1, counter($0)
+    addi $1, $1, 1          #Handle our interrupt/increment counter
+    sw $1, counter($0)
+
+    lw $13, current_task($0) 
+
+    lw $1, time_slice($13)
+    subi $1, $1, 1
+    sw $1, time_slice($13)
+    beqz $1, dispatcher
+
+    lw $1, 0($sp)
+    addui $sp, $sp, 1
 
     rfe 
 
@@ -155,16 +176,11 @@ schedule:
 
 load_context:
 
-    la $1, games_pcb
-    seq $13, $13, $1
-    addi $2, $0, 0x4             #Set timeslice
-    sw $2, time_slice($0)
-    bnez $13, isGame
-    addi $2, $0, 0x1             #Set timeslice
-    sw $2, time_slice($0)
-
-    isGame:
     lw $13, current_task($0)     #Get PCB of current task 
+
+    # lw $1, pcb_timeslice($13)             #Set timeslice
+    addi $1, $0, 0x2
+    sw $1, time_slice($0)
 
     lw      $1, pcb_reg13($13)   #Get the PCB value for $13 back into $ers 
     movgs   $ers, $1 
@@ -192,8 +208,6 @@ load_context:
 
     #Return to the new task 
     rfe
-
-
 
 .data
 time_slice:

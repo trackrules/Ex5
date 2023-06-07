@@ -4,6 +4,7 @@
 
 .global main
 main:   
+    sw $ra, exitRA($0)
 
     .equ timer_control,     0x72000
     .equ timer_load,        0x72001
@@ -27,6 +28,7 @@ main:
     .equ pcb_ra,    15
     .equ pcb_ear,   16
     .equ pcb_cctrl, 17
+    .equ pcb_exit, 18
 
     movsg $2, $evec             #Copy the old handler’s address to $2
     sw $2, old_handler($0)      #Save it to memory
@@ -45,6 +47,11 @@ main:
     la $2, serial_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
 
+    la $2, clean_exit
+    sw $2, pcb_ra($1)
+
+    sw $0, pcb_exit($1)
+
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, serial_pcb
@@ -61,6 +68,11 @@ main:
 
     la $2, parallel_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
+
+    la $2, clean_exit
+    sw $2, pcb_ra($1)
+
+    sw $0, pcb_exit($1)
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
@@ -79,6 +91,11 @@ main:
     la $2, gameSelect_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
 
+    la $2, clean_exit
+    sw $2, pcb_ra($1)
+
+    sw $0, pcb_exit($1)
+
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, games_pcb
@@ -96,7 +113,18 @@ main:
     sw $11, timer_control($0)
 
     jal load_context
-   
+
+clean_exit:
+    lw $1, current_task($0)
+    addi $2, $0, 0x1 #SETTING SKIP
+    sw $2, pcb_exit($1)    
+
+    lw $2, exitcount($0)
+    addi $2, $2, 0x1
+    sw $2, exitcount($0)
+
+    j dispatcher
+
 handler:
     movsg $13, $estat       #Get the value of the exception status register
     andi $13, $13, 0xffb0   #Check if interrupt we don’t handle ourselves
@@ -151,8 +179,14 @@ save_context:
 schedule: 
     lw $13, current_task($0)    #Get current task 
     lw $13, pcb_link($13)       #Get next task from pcb_linkfield 
-    sw $13, current_task($0)    #Set next task as current task  
+    sw $13, current_task($0)    #Set next task as current task 
 
+    lw $1, exitcount($0)
+    snei $2, $1, 0x2
+    beqz $2, exitclean
+
+    lw $1, pcb_exit($13)
+    bnez $1,  schedule
 load_context:
 
     la $1, games_pcb
@@ -193,7 +227,9 @@ load_context:
     #Return to the new task 
     rfe
 
-
+exitclean:
+    lw $ra, exitRA($0)
+    jr $ra
 
 .data
 time_slice:
@@ -204,11 +240,17 @@ old_handler:    .word
 
 current_task:   .word
 
+exitcount:      .word
+
+exitRA:         .word
+
 serial_pcb:     .space 19
 
 parallel_pcb:   .space 19 
 
 games_pcb:      .space 19
+
+
 
     .space 200
 serial_stack:
