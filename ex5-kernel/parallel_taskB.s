@@ -89,8 +89,8 @@ L.10:
 	lw	$ra, 5($sp)
 	addui	$sp, $sp, 6
 	jr	$ra
-.global	parallel_main
-parallel_main:
+.global	main
+main:
 	subui	$sp, $sp, 7
 	sw	$5, 2($sp)
 	sw	$6, 3($sp)
