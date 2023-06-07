@@ -25,10 +25,16 @@ all:
 	# wasm kernel_q7.s 
 	# wlink -o kernel_q7.srec kernel_q7.o parallel_task.o serial_task.o gameSelect.O breakout.O rocks.O
 
+	# wasm serial_task.s
+	# wasm parallel_task.s
+	# wasm kernel_q8.s 
+	# wlink -o kernel_q8.srec kernel_q8.o parallel_task.o serial_task.o gameSelect.O breakout.O rocks.O
+
 	wasm serial_task.s
 	wasm parallel_task.s
-	wasm kernel_q8.s 
-	wlink -o kernel_q8.srec kernel_q8.o parallel_task.o serial_task.o gameSelect.O breakout.O rocks.O
+	wasm kernel_q9.s 
+	wlink -o kernel_q9.srec kernel_q9.o parallel_task.o serial_task.o gameSelect.O breakout.O rocks.O
+
 clean:
 	rm parallel_task.s parallel_task.o parallel_task.srec
 	rm serial_task.s serial_task.o serial_task.srec	
@@ -38,3 +44,4 @@ clean:
 	rm kernel_q6.s kernel_q6.o kernel_q6.srec
 	rm kernel_q7.s kernel_q7.o kernel_q7.srec
 	rm kernel_q8.s kernel_q8.o kernel_q8.srec	
+	rm kernel_q9.s kernel_q9.o kernel_q9.srec	
