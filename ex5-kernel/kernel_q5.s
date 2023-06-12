@@ -34,8 +34,10 @@ main:
     la $2, handler              #Get the address of our handler
     movgs $evec, $2             #And copy it into the $evec register
 
+
+    #============SERIAL PCB SETUP===============
     addi $5, $0, 0x4d           #Unmask IRQ2, KU=1, OKU=1, IE=0,OIE=1 
-    la $1, serial_pcb           #Setup the pcb for task 1 
+    la $1, serial_pcb           
 
     la $2, parallel_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
@@ -48,11 +50,11 @@ main:
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
-    la $1, serial_pcb
+    la $1, serial_pcb           #current task PCB load
     sw $1, current_task($0)    
 
-    #===========================
-    la $1, parallel_pcb           #Setup the pcb for task 1 
+    #==============PARALLEL PCB SETUP=============
+    la $1, parallel_pcb           
 
     la $2, serial_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
@@ -65,8 +67,10 @@ main:
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
-    la $1, parallel_pcb
+    la $1, parallel_pcb         #current task PCB load
     sw $1, current_task($0)  
+
+    #===============END PCB SETUP============
 
     movsg $2, $cctrl            #Get val of cctrl
     andi $2, $2, 0x000f         #Disable interrupts
@@ -96,10 +100,10 @@ handle_irq2:
     addi $13, $13, 1          #Handle our interrupt/increment counter
     sw $13, counter($0)
     
-    lw $13, time_slice($0)
+    lw $13, time_slice($0)      #decrement slice
     subi $13, $13, 1
     sw $13, time_slice($0)
-    beqz $13, dispatcher
+    beqz $13, dispatcher        #call disptacher if time slice is up
 
 
     rfe 

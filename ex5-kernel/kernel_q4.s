@@ -37,7 +37,7 @@ main:
     addi $5, $0, 0x4d           #Unmask IRQ2, KU=1, OKU=1, IE=0,OIE=1 
     la $1, serial_pcb           #Setup the pcb for task 1 
 
-    la $2, serial_pcb 
+    la $2, serial_pcb           #address for next task PCB
     sw $2, pcb_link($1)         #Setup the link field 
 
     la $2, serial_stack         #Setup the stack pointer
@@ -48,7 +48,7 @@ main:
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
-    la $1, serial_pcb
+    la $1, serial_pcb           #address for next task
     sw $1, current_task($0)    
 
     movsg $2, $cctrl            #Get val of cctrl

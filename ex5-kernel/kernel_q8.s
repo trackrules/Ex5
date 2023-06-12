@@ -34,9 +34,10 @@ main:
     sw $2, old_handler($0)      #Save it to memory
     la $2, handler              #Get the address of our handler
     movgs $evec, $2             #And copy it into the $evec register
+    #============SERIAL PCB SETUP===============
 
     addi $5, $0, 0x4d           #Unmask IRQ2, KU=1, OKU=1, IE=0,OIE=1 
-    la $1, serial_pcb           #Setup the pcb for task 1 
+    la $1, serial_pcb           
 
     la $2, parallel_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
@@ -47,18 +48,18 @@ main:
     la $2, serial_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
 
-    la $2, clean_exit
-    sw $2, pcb_ra($1)
+    la $2, clean_exit           #Setup the return address
+    sw $2, pcb_ra($1)           
 
-    sw $0, pcb_exit($1)
+    sw $0, pcb_exit($1)         #setup exit flag
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, serial_pcb
     sw $1, current_task($0)    
 
-    #===========================
-    la $1, parallel_pcb           #Setup the pcb for task 1 
+    #============PARALLEL PCB SETUP===============
+    la $1, parallel_pcb           
 
     la $2, games_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
@@ -69,18 +70,18 @@ main:
     la $2, parallel_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
 
-    la $2, clean_exit
+    la $2, clean_exit           #Setup the return address
     sw $2, pcb_ra($1)
 
-    sw $0, pcb_exit($1)
+    sw $0, pcb_exit($1)         #setup exit flag
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, parallel_pcb
     sw $1, current_task($0)  
 
-    #===========================
-    la $1, games_pcb           #Setup the pcb for task 1 
+    #==============GAMES PCB SETUP=============
+    la $1, games_pcb           
 
     la $2, serial_pcb 
     sw $2, pcb_link($1)         #Setup the link field 
@@ -91,15 +92,16 @@ main:
     la $2, gameSelect_main          #Setup the Sear field
     sw $2, pcb_ear ($1)
 
-    la $2, clean_exit
+    la $2, clean_exit           #Setup the return address
     sw $2, pcb_ra($1)
 
-    sw $0, pcb_exit($1)
+    sw $0, pcb_exit($1)         #setup exit flag 
 
     sw $5, pcb_cctrl($1)        #Setup the $cctrl field
 
     la $1, games_pcb
     sw $1, current_task($0)  
+    #==============END PCB SETUP=============
 
     movsg $2, $cctrl            #Get val of cctrl
     andi $2, $2, 0x000f         #Disable interrupts
@@ -114,13 +116,13 @@ main:
 
     jal load_context
 
-clean_exit:
+clean_exit:                     #return address from ended task
     lw $1, current_task($0)
-    addi $2, $0, 0x1 #SETTING SKIP
+    addi $2, $0, 0x1            #Set Flag to on
     sw $2, pcb_exit($1)    
 
     lw $2, exitcount($0)
-    addi $2, $2, 0x1
+    addi $2, $2, 0x1            #increment counter for how many tasks have ended
     sw $2, exitcount($0)
 
     j dispatcher
@@ -141,9 +143,9 @@ handle_irq2:
     sw $13, counter($0)
     
     lw $13, time_slice($0)
-    subi $13, $13, 1
+    subi $13, $13, 1            #decrement slice
     sw $13, time_slice($0)
-    beqz $13, dispatcher
+    beqz $13, dispatcher        #call disptacher if time slice is up
 
 
     rfe 
@@ -181,21 +183,21 @@ schedule:
     lw $13, pcb_link($13)       #Get next task from pcb_linkfield 
     sw $13, current_task($0)    #Set next task as current task 
 
-    lw $1, exitcount($0)
-    snei $2, $1, 0x2
-    beqz $2, exitclean
+    lw $1, exitcount($0)        
+    snei $2, $1, 0x2            #check if all task have been exited
+    beqz $2, exitclean          #if all done, exit cleanly 
 
-    lw $1, pcb_exit($13)
-    bnez $1,  schedule
+    lw $1, pcb_exit($13)        #check exit flag of next task
+    bnez $1,  schedule          #repeat if exited
 load_context:
 
     la $1, games_pcb
-    seq $13, $13, $1
-    addi $2, $0, 0x4             #Set timeslice
+    seq $13, $13, $1            #check current task is game
+    addi $2, $0, 0x4            #Set timeslice as if its a game
     sw $2, time_slice($0)
-    bnez $13, isGame
-    addi $2, $0, 0x1             #Set timeslice
-    sw $2, time_slice($0)
+    bnez $13, isGame            #cont if game
+    addi $2, $0, 0x1            
+    sw $2, time_slice($0)       #Set timeslice if not a game
 
     isGame:
     lw $13, current_task($0)     #Get PCB of current task 
